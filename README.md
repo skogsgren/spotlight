@@ -1,5 +1,7 @@
 # Spotlight
 
+![](example.gif)
+
 Simple web crawler and topic extractor written in Python, using `requests` for 
 HTML-requests, `lda` for topic extraction, `BeautifulSoup` for HTML parsing,
 and `spacy` for lemmatization.
