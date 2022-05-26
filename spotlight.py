@@ -1,6 +1,7 @@
-"""Spotlight: Crawls a given website for text, analyzes topics for that text.
+__doc__ = """
+Crawls a given website for text, analyzes topics for that text.
 
-This program will take a given url and crawl that url given two arguments: the
+Spotlight will take a given url and crawl that url given two arguments: the
 amount of articles/pages to crawl, and what language that website is in. 
 Currently two languages are supported: English and Swedish, specified with 
 'en' and 'sv' respectively. Additionally there is a third optional flag for 
@@ -8,10 +9,11 @@ the program, '--sloppy', '--sloppytext' or '--sloppylink'. '--sloppy'
 pays no heed to CSS classes, which means that it will crawl the entire URL 
 without discrimination. '--sloppytext' will adhere to the CSS 
 classes of links, but the classes in the text. '--sloppylink' will 
-adhere to the CSS classes of text, but not links.
+adhere to the CSS classes of text, but not links. Note that the sloppy flags
+involving text will in cases where the text happens to also be a valid CSS 
+class add the text twice to the text that is later analyzed for topics.
 
-    Typical usage example:
-
+Typical usage example:
         python3 spotlight.py URL 500 en
         python3 spotlight.py URL 1000 sv --sloppytext
 """
@@ -42,6 +44,16 @@ class Crawler():
         vocab_set: the set of unique (lemmatized) words in all the articles.
         article_list: a list where each element is one article. Is used for
                       the numpy array in topic extraction.
+        url_classes: a list of manually inspected CSS classes; inline comments
+                     for the appropriate place where I found them. Teddit was 
+                     chosen instead of reddit because of its lack of 
+                     javascript.
+        embedded_url_classes: a list of manually inspected *embedded* CSS 
+                              classes; meaning that they are classes which
+                              links are subordinate to. These are necessary 
+                              because some websites have links 
+                              without CSS classes, but which are always 
+                              subordinate to other classes.
     """
     def __init__(self):
         self.vis_count = 0
@@ -49,14 +61,6 @@ class Crawler():
         self.vis = set()
         self.vocab_set = set()
         self.article_list = list()
-        # These are checked by manually inspecting the CSS of the nav page
-        # (i.e. the page that houses say editorial articles) of URLs in order
-        # to determine what URLs we actually want the crawler to
-        # parse.
-        #
-        # For reddit I instead opted for teddit.net, seeing that it's simply
-        # a front end that doesn't contain any javascript, which makes it
-        # easier to crawl.
         self.url_classes = [
                 'css-826iu8',  # Aftonbladets ledarsida
                 'css-1gd0wp5',  # Aftonbladets ledarsida, nav
@@ -72,6 +76,7 @@ class Crawler():
                 ]
 
     def request(self, url):
+        """Takes a URL as input and handles the HTML request of that link"""
         url_base = re.match(r'.+\.\w+', url).group(0)
         html_request = requests.get(url)
 
@@ -82,7 +87,8 @@ class Crawler():
                 html = '<!-- -->'
                 print('404 error, but keepin\' on keepin\' on...')
         except (requests.exceptions.ChunkedEncodingError,
-                requests.exceptions.ConnectionError):
+                requests.exceptions.ConnectionError,
+                requests.exceptions.InvalidSchema):
             html = '<!-- -->'
             print('404 error, but keepin\' on keepin\' on...')
 
@@ -96,10 +102,13 @@ class Crawler():
         return soups_and_chowders
 
     def spider(self, url, count, lang, sloppy):
+        """Handles the "delegation of labor" to the other functions in this,
+           as well as the attribution of the other digger, class. Finally
+           it composes the results when it is finished."""
         url_base = re.match(r'.+\.\w+', url).group(0)
         url_base = url_base.strip('https://')
         url_base = url_base.strip('www.')
-        url_base = re.sub(r'\.(se|com|nu|org|xyz|cyou|net)', '', url_base)
+        url_base = re.sub(r'\.(se|com|nu|org|xyz|cyou|net|win)', '', url_base)
         if url not in self.vis_list:
             self.vis_list.append(url)
             for link in self.vis_list:
@@ -107,15 +116,17 @@ class Crawler():
                     soups = self.request(link)
                     extracter = Digger()
                     # Only for logging purposes, a simple solution
-                    # so that logging lines don't exceed 80 lines
-                    rel_count = f"{self.vis_count}/{count} Extracting"
+                    # so that logging lines don't exceed 80 lines while
+                    # also providing a simple progress bar.
+                    rel_count = f"{self.vis_count}/{count}"
 
-                    logging.info(f"{rel_count} text from {link}")
-                    text = extracter.extract_text(soups['peasoup'],
+                    logging.info(f"{rel_count} Extracting text from {link}")
+                    text = extracter.extract_text(soups['soup'],
+                                                  soups['peasoup'],
                                                   sloppy['text'])
                     lemma = extracter.lemmatize(text, lang)
                     # Checks the extracted lemmatized words for uniqueness
-                    # to the vocabulary, and then adds the article if it 
+                    # to the vocabulary set, and then adds the article if it 
                     # isn't empty.
                     for word in lemma:
                         if word not in self.vocab_set:
@@ -123,7 +134,7 @@ class Crawler():
                     if lemma != []:
                         self.article_list.append(' '.join(lemma))
 
-                    logging.info(f"{rel_count} links from {link}")
+                    logging.info(f"{rel_count} Extracting links from {link}")
                     self.get_links(soups['soup'],
                                    soups['chefsoup'],
                                    soups['url_base'],
@@ -133,7 +144,7 @@ class Crawler():
                 else:
                     pass
             try:
-                result = extracter.topic_extraction(
+                result = extracter.extract_topic(
                         self.article_list, tuple(self.vocab_set))
                 with open(f'{url_base}.txt', 'a') as filename:
                     filename.write(f'\ncrawled {len(self.vis)} pages\
@@ -160,12 +171,13 @@ class Crawler():
             return url_base
 
     def get_links(self, soup, chefsoup, url_base, sloppy):
-        # Handles links in closed CSS-classes, and handles the --sloppy flag.
+        """ Handles links in closed CSS-classes, and handles the --sloppy 
+            flag """
         for link in chefsoup:
             final_link = self.format_links(url_base, link)
             try:
                 # Ensures that it doesn't crawl outside of the domain.
-                if url_base in final_link:
+                if final_link.startswith(url_base):
                     for cl in self.url_classes:
                         try:
                             if cl in link.attrs['class']:
@@ -187,7 +199,7 @@ class Crawler():
                 try:
                     final_link = self.format_links(url_base, link.find('a'))
                     # Ensures that it doesn't crawl outside of the domain.
-                    if url_base in final_link:
+                    if final_link.startswith(url_base):
                         self.vis_list.append(final_link)
                     else:
                         pass
@@ -198,11 +210,18 @@ class Crawler():
 class Digger:
     """ Responsible for extracting text and topics from raw HTML.
 
-    Includes functions for: extracting text from <p> tags, lemmatization,
-    topic extraction.
+    Includes functions for: 
+        extract_text, 
+        lemmatize, 
+        extract_topic.
     """
 
-    def extract_text(self, peasoup, sloppy):
+    def extract_text(self, soup, peasoup, sloppy):
+        """Extracts text from the <p> soup that it takes as input according
+           to the CSS classes below and the sloppy flag. Also creates new
+           <p> soups according to the list of embedded classes for text
+           that lacks classes in their <p> tags but are subordinate to other
+           classes."""
         extracted_text = list()
         # These are checked by manually inspecting the CSS of articles.
         css_classes = [
@@ -210,11 +229,15 @@ class Digger:
                 'dcr-xry7m2',  # The Guardian
                 'dcr-1of5t9g'  # The Guardian Editorial Article
                 ]
+        embedded_classes = [
+                'md',  # teddit comments
+                'field-item'  # Friatider article text
+                ]
 
         for paragraph in peasoup:
             if paragraph.get_text() not in extracted_text:
-                # Goes through each of the css_classes and appends the text
-                # if there is a match, unless the --sloppy flag is used.
+                # Goes through each of the css_classes and appends the 
+                # extracted text iff there is a match.
                 for cl in css_classes:
                     try:
                         if cl in paragraph.attrs['class']:
@@ -222,9 +245,21 @@ class Digger:
                     # Because some <p> tags lack classes.
                     except KeyError:
                         pass
-
+                # If sloppy is detected, add the text. Note here that
+                # if the paragraph also has a class that is in the
+                # CSS-classes it will be added twice.
                 if sloppy:
                     extracted_text.append(paragraph.get_text())
+        
+        for cl in embedded_classes:
+            embedded = soup.find_all(class_=cl)
+            for paragraph in embedded:
+                try:
+                    small_peasoup = paragraph.find('p')
+                    if small_peasoup.get_text() not in extracted_text:
+                        extracted_text.append(small_peasoup.get_text())
+                except AttributeError:
+                    pass
 
         return ' '.join(extracted_text)
 
@@ -233,7 +268,7 @@ class Digger:
         out any words lacking meaningful semantic meaning (by use of a
         frequency list)."""
 
-        # Taken from https://universaldependencies.org/u/pos/,
+        # Grabbed from https://universaldependencies.org/u/pos/,
         # "closed class words"
         closed_class_words = ['PUNCT',
                               'SYM',
@@ -250,14 +285,10 @@ class Digger:
 
         # There is most certainly a cleaner way to do this, but seeing that the
         # datasets are so different I thought the simplest, and most fool-
-        # proof method was by duplicating them and then changing small things
-        # as needed. This can easily be expanded to encompass for more
-        # languages as needed. See https://spacy.io/usage/models/#languages
-        # Note that spacy's lemmatization requires explicit installation in
-        # your shell for these corpora, which can be performed by:
-        #
-        # python3 -m spacy download en_core_web_sm
-        # python3 -m spacy download sv_core_news_sm
+        # proof method was by duplicating the conditionals 
+        # and then changing small things as needed. 
+        # This can easily be expanded to encompass for more
+        # languages as needed. See https://spacy.io/usage/models/#languages.
         if lang == 'en':
             nlp = spacy.load("en_core_web_sm")
             with open("frequency-en.csv", 'r') as frequency:
@@ -288,17 +319,20 @@ class Digger:
             lemma = token.lemma_
             if (lemma not in vocab
                     and token.pos_ not in closed_class_words
+                    # Because it is very uncommon that a word with less than
+                    # three characters has any significant semantic meaning.
                     and len(lemma) > 3
                     and lemma not in frequency_list
-                    # These below are manually added exceptions
-                    # that spacy lemmatized wrong during testing.
+                    # Manually added exceptions that spacy lemmatized 
+                    # wrong during testing.
                     and '%' not in lemma
-                    and '.' not in lemma
                     and '"' not in lemma):
                 vocab.append(lemma)
         return vocab
 
-    def topic_extraction(self, articles, uniq_words):
+    def extract_topic(self, articles, uniq_words):
+        """ Takes a list of articles, as well as a set of vocabulary. This is
+            used to create a numpy array that is then analyzed through lda."""
         logging.info("Analyzing text...")
         for article in articles:
             array_column = list()
@@ -325,6 +359,8 @@ class Digger:
         return result
 
 
+# This simply deals with the input when you run the program, so that the 
+# correct flags are set, etc.
 if __name__ == '__main__':
     url = sys.argv[1]
     sloppy = dict()
