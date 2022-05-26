@@ -126,10 +126,10 @@ class Crawler():
                     # Checks the extracted lemmatized words for uniqueness
                     # to the vocabulary set, and then adds the article if it 
                     # isn't empty.
-                    for word in lemma:
-                        if word not in self.vocab_set:
-                            self.vocab_set.add(word)
                     if lemma != []:
+                        for word in lemma:
+                            if word not in self.vocab_set:
+                                self.vocab_set.add(word)
                         self.article_list.append(' '.join(lemma))
 
                     logging.info(f"{rel_count} Extracting links from {link}")
