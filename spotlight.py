@@ -105,10 +105,7 @@ class Crawler():
         """Handles the "delegation of labor" to the other functions in this,
            as well as the attribution of the other digger, class. Finally
            it composes the results when it is finished."""
-        url_base = re.match(r'.+\.\w+', url).group(0)
-        url_base = url_base.strip('https://')
-        url_base = url_base.strip('www.')
-        url_base = re.sub(r'\.(se|com|nu|org|xyz|cyou|net|win)', '', url_base)
+        url_base = re.search(r'\w+\.\w+', url).group(0)
         if url not in self.vis_list:
             self.vis_list.append(url)
             for link in self.vis_list:
