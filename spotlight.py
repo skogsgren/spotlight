@@ -27,6 +27,7 @@ import lda
 import spacy
 import requests
 
+# Basic logging configuration
 logging.basicConfig(format='%(asctime)s %(message)s')
 logging.getLogger().setLevel(logging.INFO)
 
@@ -39,7 +40,7 @@ class Crawler():
 
     Attributes:
         vis_count: amount of visited websites.
-        vis_list: the list of websites to visit.
+        to_visit: the list of websites to visit.
         vis: the set of visited websites, i.e. already crawled websites.
         vocab_set: the set of unique (lemmatized) words in all the articles.
         article_list: a list where each element is one article. Is used for
@@ -57,8 +58,8 @@ class Crawler():
     """
     def __init__(self):
         self.vis_count = 0
-        self.vis_list = list()
-        self.vis = set()
+        self.to_visit = list()
+        self.visited = set()
         self.vocab_set = set()
         self.article_list = list()
         self.url_classes = [
@@ -106,10 +107,10 @@ class Crawler():
            as well as the attribution of the other digger, class. Finally
            it composes the results when it is finished."""
         url_base = re.search(r'\w+\.\w+', url).group(0)
-        if url not in self.vis_list:
-            self.vis_list.append(url)
-            for link in self.vis_list:
-                if link not in self.vis and self.vis_count <= count:
+        if url not in self.to_visit:
+            self.to_visit.append(url)
+            for link in self.to_visit:
+                if link not in self.visited and self.vis_count <= count:
                     soups = self.request(link)
                     extracter = Digger()
                     # Only for logging purposes, a simple solution
@@ -136,7 +137,7 @@ class Crawler():
                                    soups['chefsoup'],
                                    soups['url_base'],
                                    sloppy['link'])
-                    self.vis.add(link)
+                    self.visited.add(link)
                     self.vis_count += 1
                 else:
                     pass
@@ -144,10 +145,10 @@ class Crawler():
                 result = extracter.extract_topic(
                         self.article_list, tuple(self.vocab_set))
                 with open(f'{url_base}.txt', 'a') as filename:
-                    filename.write(f'\ncrawled {len(self.vis)} pages\
+                    filename.write(f'\ncrawled {len(self.visited)} pages\
                                     on {url}\
                                     \n{result} \n')
-                print(f'\ncrawled {len(self.vis)} pages on {url}\
+                print(f'\ncrawled {len(self.visited)} pages on {url}\
                         \n{result} \n')
             except UnboundLocalError:
                 print('Something went wrong during extraction; which'
@@ -178,14 +179,14 @@ class Crawler():
                     for cl in self.url_classes:
                         try:
                             if cl in link.attrs['class']:
-                                self.vis_list.append(final_link)
+                                self.to_visit.append(final_link)
                         except KeyError:
                             if sloppy:
-                                self.vis_list.append(final_link)
+                                self.to_visit.append(final_link)
                             else:
                                 pass
                     if sloppy:
-                        self.vis_list.append(final_link)
+                        self.to_visit.append(final_link)
             except UnboundLocalError:
                 pass
 
@@ -197,7 +198,7 @@ class Crawler():
                     final_link = self.format_links(url_base, link.find('a'))
                     # Ensures that it doesn't crawl outside of the domain.
                     if final_link.startswith(url_base):
-                        self.vis_list.append(final_link)
+                        self.to_visit.append(final_link)
                     else:
                         pass
                 except UnboundLocalError:
