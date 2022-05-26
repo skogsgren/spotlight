@@ -26,7 +26,7 @@ you want it to crawl before stopping (larger number gives better results), and
 `LANG` by either 'en' for English or 'sv' for Swedish.
 
 Output will be written to a txt-file with the base URL as filename (e.g. 
-'theguardian.txt' for the example given above, as well as the same output 
+'theguardian.txt' for the example given above), as well as the same output 
 being given in the terminal. Example output for the command
 `python3 spotlight.py https://aftonbladet.se/ledare 1500 sv`:
 
@@ -62,19 +62,19 @@ Topic 8: president Trump international China country Donald military
 Topic 9: report police case abuse government court public
 ```
 
-and `python3 spotlight.py https://www.friatider.se/opinion 2000 sv --sloppytext`:
+and `python3 spotlight.py https://www.friatider.se/opinion 1500 sv`:
 
 ```
-crawled 2001 pages on https://www.friatider.se/opinion
+crawled 1501 pages on https://friatider.se/opinion
 TOPICS:
-Topic 0: bild plus lika därför höra negativ dålig
-Topic 1: cool bluff låta Låter därför ensam fungera
-Topic 2: utmanas Einár Jönsson bild därför september liberal
-Topic 3: enskild istället varför tidning vänster varför?0 politik
-Topic 4: skriva bild plus kalla anse åsikt endast
-Topic 5: fler egen finnas stenålder problem bikini olik
-Topic 6: fokus journalist folkslag icke-interventionism nyhet underkläd Utrikespolitisk
-Topic 7: cool yrkesområde intressant avskaffande Aron Afghanistan etablissemangen
-Topic 8: bild plus skriva sätt säga stark amerikansk
-Topic 9: vanlig därför säga växa länge lång skriva 
+Topic 0: Sverige demokrati politisk term invandring publicera försöka
+Topic 1: politik olik föra Sverige stor politisk svensk
+Topic 2: finnas svensk anse rösta demokratisk tala fråga
+Topic 3: direkt exempel krona tillgång gratis Plus innehåll
+Topic 4: positiv person därför artikel stark olik använda
+Topic 5: Sverige kräva antal finnas säga stor fråga
+Topic 6: annan politik person ofta svensk stor mången
+Topic 7: istället kalla varför visa problem situation politisk
+Topic 8: finnas annan egen verka person skriva människa
+Topic 9: person skapa åsikt viss amerikansk Sverige ligga
 ```
