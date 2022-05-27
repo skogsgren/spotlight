@@ -2,15 +2,15 @@ __doc__ = """
 Crawls a given website for text, analyzes topics for that text.
 
 Spotlight will take a given url and crawl that url given two arguments: the
-amount of articles/pages to crawl, and what language that website is in. 
-Currently two languages are supported: English and Swedish, specified with 
-'en' and 'sv' respectively. Additionally there is a third optional flag for 
-the program, '--sloppy', '--sloppytext' or '--sloppylink'. '--sloppy' 
-pays no heed to CSS classes, which means that it will crawl the entire URL 
-without discrimination. '--sloppytext' will adhere to the CSS 
-classes of links, but the classes in the text. '--sloppylink' will 
+amount of articles/pages to crawl, and what language that website is in.
+Currently two languages are supported: English and Swedish, specified with
+'en' and 'sv' respectively. Additionally there is a third optional flag for
+the program, '--sloppy', '--sloppytext' or '--sloppylink'. '--sloppy'
+pays no heed to CSS classes, which means that it will crawl the entire URL
+without discrimination. '--sloppytext' will adhere to the CSS
+classes of links, but the classes in the text. '--sloppylink' will
 adhere to the CSS classes of text, but not links. Note that the sloppy flags
-involving text will in cases where the text happens to also be a valid CSS 
+involving text will in cases where the text happens to also be a valid CSS
 class add the text twice to the text that is later analyzed for topics.
 
 Typical usage example:
@@ -46,14 +46,14 @@ class Crawler():
         article_list: a list where each element is one article. Is used for
                       the numpy array in topic extraction.
         url_classes: a list of manually inspected CSS classes; inline comments
-                     for the appropriate place where I found them. Teddit was 
-                     chosen instead of reddit because of its lack of 
+                     for the appropriate place where I found them. Teddit was
+                     chosen instead of reddit because of its lack of
                      javascript.
-        embedded_url_classes: a list of manually inspected *embedded* CSS 
+        embedded_url_classes: a list of manually inspected *embedded* CSS
                               classes; meaning that they are classes which
-                              links are subordinate to. These are necessary 
-                              because some websites have links 
-                              without CSS classes, but which are always 
+                              links are subordinate to. These are necessary
+                              because some websites have links
+                              without CSS classes, but which are always
                               subordinate to other classes.
     """
     def __init__(self):
@@ -124,7 +124,7 @@ class Crawler():
                                                   sloppy['text'])
                     lemma = extracter.lemmatize(text, lang)
                     # Checks the extracted lemmatized words for uniqueness
-                    # to the vocabulary set, and then adds the article if it 
+                    # to the vocabulary set, and then adds the article if it
                     # isn't empty.
                     if lemma != []:
                         for word in lemma:
@@ -169,40 +169,43 @@ class Crawler():
             return url_base
 
     def get_links(self, soup, chefsoup, url_base, sloppy):
-        """ Handles links in closed CSS-classes, and handles the --sloppy 
+        """ Handles links in closed CSS-classes, and handles the --sloppy
             flag """
         for link in chefsoup:
             final_link = self.format_links(url_base, link)
             try:
                 # Ensures that it doesn't crawl outside of the domain.
                 if final_link.startswith(url_base):
-                    for cl in self.url_classes:
-                        try:
-                            if cl in link.attrs['class']:
-                                self.to_visit.append(final_link)
-                        except KeyError:
-                            if sloppy:
-                                self.to_visit.append(final_link)
-                            else:
-                                pass
+                    if not sloppy:
+                        for cl in self.url_classes:
+                            try:
+                                if cl in link.attrs['class']:
+                                    self.to_visit.append(final_link)
+                            except KeyError:
+                                if sloppy:
+                                    self.to_visit.append(final_link)
+                                else:
+                                    pass
                     if sloppy:
                         self.to_visit.append(final_link)
             except UnboundLocalError:
                 pass
 
         # Handles links for embedded_url classes.
-        for cl in self.embedded_url_classes:
-            embedded = soup.find_all(class_=cl)
-            for link in embedded:
-                try:
-                    final_link = self.format_links(url_base, link.find('a'))
-                    # Ensures that it doesn't crawl outside of the domain.
-                    if final_link.startswith(url_base):
-                        self.to_visit.append(final_link)
-                    else:
+        if not sloppy:
+            for cl in self.embedded_url_classes:
+                embedded = soup.find_all(class_=cl)
+                for link in embedded:
+                    try:
+                        final_link = self.format_links(
+                                url_base, link.find('a'))
+                        # Ensures that it doesn't crawl outside of the domain.
+                        if final_link.startswith(url_base):
+                            self.to_visit.append(final_link)
+                        else:
+                            pass
+                    except UnboundLocalError:
                         pass
-                except UnboundLocalError:
-                    pass
 
 
 class Digger:
@@ -236,28 +239,29 @@ class Digger:
             if paragraph.get_text() not in extracted_text:
                 # Goes through each of the css_classes and appends the 
                 # extracted text iff there is a match.
-                for cl in css_classes:
-                    try:
-                        if cl in paragraph.attrs['class']:
-                            extracted_text.append(paragraph.get_text())
-                    # Because some <p> tags lack classes.
-                    except KeyError:
-                        pass
+                if not sloppy:
+                    for cl in css_classes:
+                        try:
+                            if cl in paragraph.attrs['class']:
+                                extracted_text.append(paragraph.get_text())
+                        # Because some <p> tags lack classes.
+                        except KeyError:
+                            pass
                 # If sloppy is detected, add the text. Note here that
                 # if the paragraph also has a class that is in the
                 # CSS-classes it will be added twice.
                 if sloppy:
                     extracted_text.append(paragraph.get_text())
-        
-        for cl in embedded_classes:
-            embedded = soup.find_all(class_=cl)
-            for paragraph in embedded:
-                try:
-                    small_peasoup = paragraph.find('p')
-                    if small_peasoup.get_text() not in extracted_text:
-                        extracted_text.append(small_peasoup.get_text())
-                except AttributeError:
-                    pass
+        if not sloppy:
+            for cl in embedded_classes:
+                embedded = soup.find_all(class_=cl)
+                for paragraph in embedded:
+                    try:
+                        small_peasoup = paragraph.find('p')
+                        if small_peasoup.get_text() not in extracted_text:
+                            extracted_text.append(small_peasoup.get_text())
+                    except AttributeError:
+                        pass
 
         return ' '.join(extracted_text)
 
