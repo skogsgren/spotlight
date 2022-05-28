@@ -43,7 +43,7 @@ class Crawler():
     Attributes:
         vis_count: amount of visited websites.
         to_visit: the list of websites to visit.
-        vis: the set of visited websites, i.e. already crawled websites.
+        visited: the set of visited websites, i.e. already crawled websites.
         vocab_set: the set of unique (lemmatized) words in all the articles.
         article_list: a list where each element is one article. Is used for
                       the numpy array in topic extraction.
