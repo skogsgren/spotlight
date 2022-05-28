@@ -4,14 +4,16 @@ Crawls a given website for text, analyzes topics for that text.
 Spotlight will take a given url and crawl that url given two arguments: the
 amount of articles/pages to crawl, and what language that website is in.
 Currently two languages are supported: English and Swedish, specified with
-'en' and 'sv' respectively. Additionally there is a third optional flag for
-the program, '--sloppy', '--sloppytext' or '--sloppylink'. '--sloppy'
-pays no heed to CSS classes, which means that it will crawl the entire URL
-without discrimination. '--sloppytext' will adhere to the CSS
-classes of links, but the classes in the text. '--sloppylink' will
-adhere to the CSS classes of text, but not links. Note that the sloppy flags
-involving text will in cases where the text happens to also be a valid CSS
-class add the text twice to the text that is later analyzed for topics.
+'en' and 'sv' respectively.
+
+SYNOPSIS:
+    spotlight.py [URL] [COUNT] [LANG] [OPTION]
+
+OPTIONS:
+    --sloppy        will extract both links and text without checking for valid
+                    CSS class, i.e. without discrimination.
+    --sloppytext    will extract text without discrimination.
+    --sloppylink    will extract links without discrimation.
 
 Typical usage example:
         python3 spotlight.py URL 500 en
