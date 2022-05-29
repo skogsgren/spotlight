@@ -337,8 +337,10 @@ class Digger:
     def extract_topic(self, articles, uniq_words):
         """ Takes a list of articles, as well as a set of vocabulary. This is
             used to create a numpy array that is then analyzed through lda."""
-        logging.info("Analyzing text...")
+        article_count = 0
         for article in articles:
+            article_count += 1
+            logging.info(f"Analyzing text in article {article_count}")
             array_column = list()
             for word in uniq_words:
                 word_count = 0
