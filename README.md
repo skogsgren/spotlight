@@ -20,10 +20,13 @@ python3 -m spacy download sv_core_news_sm
 
 ## Typical usage
 
-The syntax for usage is `python3 spotlight.py URL COUNT LANG`, where `URL` is
-replaced by the website you want it to crawl, `COUNT` by the number of articles
-you want it to crawl before stopping (larger number gives better results), and
-`LANG` by either 'en' for English or 'sv' for Swedish.
+The syntax for usage is `python3 spotlight.py URL COUNT LANG OPTION`, where 
+`URL` is replaced by the website you want it to crawl, `COUNT` by the number 
+of articles you want it to crawl before stopping (larger number gives better
+results), `LANG` by either 'en' for English or 'sv' for Swedish, and `OPTION`
+being an optional flag (`--sloppy, --sloppytext,` or `--sloppylink`) which
+tells the program to disregard CSS flag during extraction of text and links
+respectively.
 
 Output will be written to a txt-file with the base URL as filename (e.g. 
 'theguardian.txt' for the example given above), as well as the same output 
