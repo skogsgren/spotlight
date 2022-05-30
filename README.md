@@ -8,9 +8,11 @@ and `spacy` for lemmatization.
 
 ## Requirements
 
-`requests`, `lda`, `spacy`, `numpy`, `bs4` installed through for example `pip`. The following corpora for `spacy`: `en_core_web_sm` and `sv_core_news_sm`
+`requests`, `lda`, `spacy`, `numpy`, `bs4` installed through for example `pip`. 
+The following corpora for `spacy`: `en_core_web_sm` and `sv_core_news_sm`
 
-All of which (including this repo) can be downloaded using the following commands:
+All of which (including this repo) can be downloaded using the following 
+commands:
 
 ```
 pip3 install requests lda spacy numpy bs4
@@ -82,3 +84,16 @@ Topic 7: istället kalla varför visa problem situation politisk
 Topic 8: finnas annan egen verka person skriva människa
 Topic 9: person skapa åsikt viss amerikansk Sverige ligga
 ```
+
+## Areas for improvement
+
+One major area that is in need for improvement is the efficiency of the 
+program. Firstly one could implement a system where multiple requests for 
+websites are carried out simultaneously (as close to the limit of being banned
+by websites). This would help speed up the process of crawling websites 
+tremendously. Secondly, and perhaps more importantly, is the efficiency of
+the analysis of the text. At least on my computer (Thinkpad X220 with 6gb of 
+RAM) as soon as you come close to the 3000 article line the analysis slows down
+to a crawl, and eats up all of my RAM. Perhaps this could be offloaded to a 
+text file instead, somehow. Or perhaps there is simply a more efficient way
+to do it.
