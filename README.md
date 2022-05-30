@@ -29,7 +29,8 @@ of articles you want it to crawl before stopping (larger number gives better
 results), `LANG` by either 'en' for English or 'sv' for Swedish, and `OPTION`
 being an optional flag (`--sloppy, --sloppytext,` or `--sloppylink`) which
 tells the program to disregard CSS flag during extraction of text and links
-respectively.
+respectively. Further documentation of all the functions and classes
+can be accessed by using the `pydoc3 spotlight` command.
 
 Output will be written to a txt-file with the base URL as filename (e.g. 
 'theguardian.txt' for the example given above), as well as the same output 
