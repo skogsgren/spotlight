@@ -29,7 +29,7 @@ of articles you want it to crawl before stopping (larger number gives better
 results), `LANG` by either 'en' for English or 'sv' for Swedish, and `OPTION`
 being an optional flag (`--sloppy, --sloppytext,` or `--sloppylink`) which
 tells the program to disregard CSS flag during extraction of text and links
-respectively. Further documentation of all the functions and classes
+respectively. Further documentation of all the methods and classes
 can be accessed by using the `pydoc3 spotlight` command.
 
 Output will be written to a txt-file with the base URL as filename (e.g. 
@@ -103,9 +103,9 @@ Additionally the code could be further simplified in the part that deals with
 all of the different soups. Currently I have defined several distinct soups
 (`peasoup` and `chefsoup`) that originally were simpler because those were
 the only ones required (so it made sense to have them defined at the point
-where the `request` function was). However when I added the embedded class
+where the `request` method was). However when I added the embedded class
 functionality I also needed to have the raw soup as input for the 
-`extract_text` function, which eliminated this supposed simplicity. However
+`extract_text` method, which eliminated this supposed simplicity. However
 seeing that the functionality would not change in either case I decided to 
 simply leave it in.
 
