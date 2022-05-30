@@ -10,7 +10,7 @@ and `spacy` for lemmatization.
 
 `requests`, `lda`, `spacy`, `numpy`, `bs4` installed through for example `pip`. The following corpora for `spacy`: `en_core_web_sm` and `sv_core_news_sm`
 
-All of which (included this repo) can be downloaded using the following commands:
+All of which (including this repo) can be downloaded using the following commands:
 
 ```
 pip3 install requests lda spacy numpy bs4
