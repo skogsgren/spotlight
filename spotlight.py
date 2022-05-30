@@ -84,6 +84,7 @@ class Crawler():
         html_request = requests.get(url)
 
         try:
+            # i.e. if the request is successful.
             if html_request.status_code == 200:
                 html = html_request.text
             else:
@@ -107,7 +108,7 @@ class Crawler():
     def spider(self, url, count, lang, sloppy):
         """Handles the "delegation of labor" to the other functions in this,
            as well as the attribution of the other digger, class. Finally
-           it composes the results when it is finished."""
+           it composes the output when it is finished."""
         url_base = re.search(r'\w+\.\w+', url).group(0)
         if url not in self.to_visit:
             self.to_visit.append(url)
