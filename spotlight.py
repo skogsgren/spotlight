@@ -79,7 +79,7 @@ class Crawler():
                 ]
 
     def request(self, url):
-        """Takes a URL as input and handles the HTML request of that link"""
+        """Takes a URL as input and handles the HTML request of that link."""
         url_base = re.match(r'.+\.\w+', url).group(0)
         html_request = requests.get(url)
 
@@ -160,7 +160,9 @@ class Crawler():
                       + '\n with either the --sloppytext or --sloppy flag.')
 
     def format_links(self, url_base, link):
-        """ Ensures that relative links will be handled correctly."""
+        """Takes a link as input and formats it so that relative links
+        are handled correctly using the provided url_base that also is used
+        as input."""
         try:
             if link.get('href').startswith('/'):
                 final_link = url_base + link.get('href')
@@ -172,8 +174,10 @@ class Crawler():
             return url_base
 
     def get_links(self, soup, chefsoup, url_base, sloppy):
-        """ Handles links in closed CSS-classes, and handles the --sloppy
-            flag """
+        """ Using the soups that this method takes as input it extracts the 
+        links from those. url_base is used as the format_link is called
+        from inside this method. The sloppy flag is used since what links
+        are extracted depends on whether this is true or false."""
         for link in chefsoup:
             final_link = self.format_links(url_base, link)
             try:
