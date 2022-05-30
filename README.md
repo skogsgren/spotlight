@@ -8,14 +8,15 @@ and `spacy` for lemmatization.
 
 ## Requirements
 
-`requests`, `lda`, `spacy`, `numpy`, `bs4` installed through for example `pip`
+`requests`, `lda`, `spacy`, `numpy`, `bs4` installed through for example `pip`. The following corpora for `spacy`: `en_core_web_sm` and `sv_core_news_sm`
 
-The following corpora for `spacy`: `en_core_web_sm` and `sv_core_news_sm`, 
-which can be downloaded using the following commands:
+All of which (included this repo) can be downloaded using the following commands:
 
 ```
+pip3 install requests lda spacy numpy bs4
 python3 -m spacy download en_core_web_sm
 python3 -m spacy download sv_core_news_sm
+git clone https://github.com/skogsgren/spotlight.git
 ```
 
 ## Typical usage
