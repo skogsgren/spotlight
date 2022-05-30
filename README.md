@@ -97,3 +97,14 @@ RAM) as soon as you come close to the 3000 article line the analysis slows down
 to a crawl, and eats up all of my RAM. Perhaps this could be offloaded to a 
 text file instead, somehow. Or perhaps there is simply a more efficient way
 to do it.
+
+Additionally the code could be further simplified in the part that deals with
+all of the different soups. Currently I have defined several distinct soups
+(`peasoup` and `chefsoup`) that originally were simpler because those were
+the only ones required (so it made sense to have them defined at the point
+where the `request` function was). However when I added the embedded class
+functionality I also needed to have the raw soup as input for the 
+`extract_text` function, which eliminated this supposed simplicity. However
+seeing that the functionality would not change in either case I decided to 
+simply leave it in.
+
